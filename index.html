@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام حجز الأرقام المميزة</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Cairo Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    <style>
+        body { font-family: 'Cairo', sans-serif; transition: background-color 0.3s ease, color 0.3s ease; }
+        .admin-dashboard-glow {
+            background: radial-gradient(circle at 10% 20%, rgba(16, 185, 129, 0.25) 0%, transparent 45%),
+                        radial-gradient(circle at 90% 80%, rgba(14, 165, 233, 0.2) 0%, transparent 50%),
+                        radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.15) 0%, transparent 65%),
+                        linear-gradient(135deg, #020617 0%, #080f26 50%, #0f172a 100%);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+        }
+        .admin-card-glass {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
+        }
+        .admin-card-glass:hover {
+            border-color: rgba(16, 185, 129, 0.6);
+            box-shadow: 0 12px 35px -5px rgba(16, 185, 129, 0.2);
+            transform: translateY(-2px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 min-h-screen text-slate-800 dark:text-slate-100 flex flex-col justify-between selection:bg-blue-500 selection:text-white transition-colors duration-300">
+
+    <!-- Header / Navbar -->
+    <header class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 shadow-sm transition-all duration-300">
+        <div class="max-w-5xl mx-auto px-4 py-3.5 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 bg-gradient-to-tr from-blue-600 via-indigo-600 to-violet-600 text-white rounded-2xl flex items-center justify-center font-black text-xl shadow-lg shadow-blue-500/25">
+                    <i class="fa-solid fa-list-ol"></i>
+                </div>
+                <div>
+                    <h1 class="font-black text-xl text-slate-900 dark:text-white leading-tight tracking-tight">منصة حجز الأرقام المميزة</h1>
+                    <p class="text-[11px] font-bold text-slate-400 dark:text-slate-400">النظام التفاعلي لطلاب الصف</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <!-- Theme Toggle Button -->
+                <button onclick="toggleTheme()" class="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-amber-400 flex items-center justify-center transition border border-slate-200 dark:border-slate-700 shadow-sm" title="تبديل المظهر">
+                    <i id="themeIcon" class="fa-solid fa-moon text-base"></i>
+                </button>
+
+                <!-- Admin Status / Auth Toggle -->
+                <div id="authHeaderArea">
+                    <!-- Injected via JavaScript -->
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Dedicated Admin Mode Dashboard -->
+    <div id="adminPanelBanner" class="hidden admin-dashboard-glow text-white border-b-2 border-emerald-500/50 relative overflow-hidden transition-all duration-500">
+        <!-- Glowing Ambient Lights -->
+        <div class="absolute -right-20 -top-20 w-96 h-96 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none animate-pulse"></div>
+        <div class="absolute left-1/4 -bottom-20 w-80 h-80 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none"></div>
+        
+        <div class="max-w-5xl mx-auto px-4 py-8 relative z-10 space-y-6">
+            <!-- Top Header Control Bar -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-800/80">
+                <div class="flex items-center gap-4">
+                    <div class="relative">
+                        <div class="w-16 h-16 bg-gradient-to-tr from-emerald-400 via-teal-500 to-cyan-500 text-slate-950 rounded-2xl flex items-center justify-center font-black text-3xl shadow-xl shadow-emerald-500/30 border border-emerald-200/50">
+                            <i class="fa-solid fa-user-gear"></i>
+                        </div>
+                        <span class="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-400 border-2 border-slate-950 rounded-full animate-ping"></span>
+                        <span class="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-slate-950 rounded-full"></span>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2.5 flex-wrap">
+                            <h2 class="font-black text-2xl text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 via-teal-200 to-cyan-200">مركز عمليات وتوجيه المشرف</h2>
+                            <span class="px-3 py-1 rounded-full text-[11px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 shadow-sm flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                تحكم كامل ومباشر
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-1 font-semibold">لوحة الإدارة المتقدمة لمتابعة وتفريغ وتوثيق الحجوزات</p>
+                    </div>
+                </div>
+
+                <!-- Admin Action Tools Buttons -->
+                <div class="flex items-center gap-2.5 flex-wrap">
+                    <button onclick="copyAllBookingsSummary()" class="text-xs font-black px-4 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700/90 text-cyan-300 border border-cyan-500/40 transition-all shadow-md flex items-center gap-2 hover:scale-[1.02] active:scale-95">
+                        <i class="fa-solid fa-copy text-sm"></i>
+                        نسخ ملخص الحجوزات
+                    </button>
+                    <button onclick="confirmResetAllBookings()" class="text-xs font-black px-4 py-2.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/40 transition-all shadow-md flex items-center gap-2 hover:scale-[1.02] active:scale-95">
+                        <i class="fa-solid fa-rotate-left text-sm"></i>
+                        تفريغ الكُل
+                    </button>
+                    <button onclick="handleAdminLogout()" class="text-xs font-black px-4 py-2.5 rounded-xl bg-gradient-to-r from-rose-500/20 to-red-600/20 hover:from-rose-500/30 hover:to-red-600/30 text-rose-300 border border-rose-500/40 transition-all shadow-md flex items-center gap-2 hover:scale-[1.02] active:scale-95">
+                        <i class="fa-solid fa-power-off text-sm"></i>
+                        خروج المشرف
+                    </button>
+                </div>
+            </div>
+
+            <!-- Enhanced Admin Dashboard Metrics -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="admin-card-glass p-5 rounded-2xl flex flex-col justify-between relative overflow-hidden group">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-black text-slate-400 block tracking-wider">إجمالي قائمة الطلاب</span>
+                        <div class="w-10 h-10 rounded-xl bg-slate-800/80 border border-slate-700/80 flex items-center justify-center text-slate-300 text-base">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <span class="text-3xl font-black text-white tracking-tight">21</span>
+                        <span class="text-[10px] font-bold text-slate-400 block mt-0.5">طالب مسجل بالمنظومة</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full mt-3 overflow-hidden">
+                        <div class="bg-slate-400 h-full w-full"></div>
+                    </div>
+                </div>
+
+                <div class="admin-card-glass p-5 rounded-2xl flex flex-col justify-between relative overflow-hidden group border-emerald-500/40">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-black text-emerald-400/90 block tracking-wider">الأرقام المحجوزة</span>
+                        <div class="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 text-base shadow-lg shadow-emerald-500/20">
+                            <i class="fa-solid fa-bookmark"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <span id="adminStatBooked" class="text-3xl font-black text-emerald-300 tracking-tight">0</span>
+                        <span class="text-[10px] font-bold text-emerald-500/80 block mt-0.5">حجز مكتمل بنجاح</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full mt-3 overflow-hidden">
+                        <div id="adminStatBookedBar" class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="admin-card-glass p-5 rounded-2xl flex flex-col justify-between relative overflow-hidden group border-cyan-500/40">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-black text-cyan-400/90 block tracking-wider">الأرقام المتاحة</span>
+                        <div class="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-300 text-base shadow-lg shadow-cyan-500/20">
+                            <i class="fa-solid fa-list-ol"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <span id="adminStatRemaining" class="text-3xl font-black text-cyan-300 tracking-tight">21</span>
+                        <span class="text-[10px] font-bold text-cyan-500/80 block mt-0.5">شاغر متاح للحجز</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full mt-3 overflow-hidden">
+                        <div id="adminStatRemainingBar" class="bg-gradient-to-r from-cyan-500 to-blue-400 h-full transition-all duration-500" style="width: 100%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <main class="max-w-5xl mx-auto px-4 py-8 w-full flex-grow space-y-8">
+
+        <!-- Student Auth & Booking Card -->
+        <section class="bg-white dark:bg-slate-900 rounded-3xl p-6 md:p-8 shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 transition-all duration-300" id="mainActionCard">
+            <!-- Dynamic Content Injected via JS -->
+        </section>
+
+        <!-- Bookings Status Section -->
+        <section class="bg-white dark:bg-slate-900 rounded-3xl p-6 md:p-8 shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 transition-all duration-300" id="bookingsSection">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
+                <div>
+                    <h3 class="text-lg font-extrabold text-slate-900 dark:text-white flex items-center gap-2.5">
+                        <i class="fa-solid fa-list-check text-blue-600 dark:text-blue-400"></i>
+                        جدول الحجوزات الحالية
+                    </h3>
+                    <p class="text-xs font-semibold text-slate-400 mt-0.5">إجمالي الأرقام المحجوزة حتى الآن: <span id="totalBookingsCount" class="font-black text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded-md border border-blue-100 dark:border-blue-900">0</span></p>
+                </div>
+
+                <!-- Search Input -->
+                <div class="relative w-full sm:w-72">
+                    <input type="text" id="searchInput" oninput="renderBookings()" placeholder="بحث باسم الطالب أو الرقم..."
+                        class="w-full pr-10 pl-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs font-bold text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-slate-800 outline-none transition shadow-inner">
+                    <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-3 text-slate-400 text-sm"></i>
+                </div>
+            </div>
+
+            <!-- Bookings Grid -->
+            <div id="bookingsListContainer">
+                <!-- Bookings rendered here dynamically -->
+            </div>
+        </section>
+
+        <!-- Information / Instructions Card -->
+        <section class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-6 shadow-xl space-y-3 relative overflow-hidden border border-slate-800">
+            <div class="absolute -left-10 -bottom-10 w-40 h-40 bg-blue-500/10 rounded-full blur-2xl"></div>
+            <h4 class="font-black text-base text-amber-400 flex items-center gap-2.5">
+                <i class="fa-solid fa-shield-halved"></i>
+                تعليمات وقوانين حجز الرقم:
+            </h4>
+            <ul class="list-disc list-inside space-y-2 text-xs text-slate-300 leading-relaxed font-semibold pr-1">
+                <li>يرجى إدخال <strong class="text-white">الرقم التسلسلي (المكون من 4 أرقام)</strong> للدخول إلى حسابك التفاعلي.</li>
+                <li>لا يتكرر حجز أي رقم مسجل مسبقاً في النظام.</li>
+                <li>يستطيع المشرف تفريغ وإعادة فتح أي رقم عند الحاجة.</li>
+            </ul>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-5 text-center text-xs text-slate-400 font-bold transition-colors duration-300">
+        منصة حجز الأرقام المميزة &copy; 2026 - جميع الحقوق محفوظة
+    </footer>
+
+    <!-- Admin Login Modal -->
+    <div id="loginModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl p-7 max-w-sm w-full shadow-2xl border border-slate-100 dark:border-slate-800 space-y-5 relative">
+            <button onclick="closeLoginModal()" class="absolute left-4 top-4 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center transition">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+            <div class="text-center space-y-2">
+                <div class="w-14 h-14 bg-emerald-500/10 text-emerald-500 rounded-2xl flex items-center justify-center mx-auto text-2xl font-black border border-emerald-500/20">
+                    <i class="fa-solid fa-user-lock"></i>
+                </div>
+                <h3 class="font-black text-slate-900 dark:text-white text-lg">بوابة دخول المشرف</h3>
+                <p class="text-xs font-semibold text-slate-400">يرجى تأكيد الهوية بالرمز السري الخاص بك</p>
+            </div>
+
+            <form onsubmit="handleAdminLogin(event)" class="space-y-4">
+                <div>
+                    <input type="password" id="loginInputCode" required placeholder="رمز المشرف السري"
+                        class="w-full px-4 py-3.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:bg-white dark:focus:bg-slate-800 text-center font-black outline-none text-slate-900 dark:text-white transition text-base tracking-widest">
+                </div>
+                <div id="loginErrorMsg" class="hidden text-center text-xs text-rose-600 dark:text-rose-400 font-black">
+                    الرمز غير صحيح، يرجى المحاولة مرة أخرى!
+                </div>
+                <button type="submit" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-slate-950 font-black py-3.5 rounded-2xl transition-all shadow-lg shadow-emerald-500/25 text-xs">
+                    دخول اللوحة
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="fixed bottom-6 left-6 z-50 flex flex-col gap-2 max-w-xs"></div>
+
+    <!-- Application JavaScript Logic -->
+    <script>
+        // Database of Students
+        const STUDENTS_DATABASE = [
+            { code: "8314", name: "عبدالرحمن بن بشر" },
+            { code: "1049", name: "ريان احسان" },
+            { code: "6205", name: "لؤي نايل" },
+            { code: "3912", name: "عبدالله بارشيد" },
+            { code: "7481", name: "عبدالله المنهالي" },
+            { code: "2156", name: "عبدالملك الغانمي" },
+            { code: "9037", name: "يمان قدارة" },
+            { code: "5128", name: "ابراهيم الشيخ" },
+            { code: "4390", name: "انس وسام" },
+            { code: "8671", name: "وليد تورقل" },
+            { code: "1503", name: "سلطان قاسم" },
+            { code: "7264", name: "فارس يونس" },
+            { code: "9841", name: "بتال الضالعي" },
+            { code: "3419", name: "عمر قاسم" },
+            { code: "6752", name: "محمد مروان الزايت" },
+            { code: "2890", name: "ابو بكر بن عفيف" },
+            { code: "5038", name: "سالم الصبحي" },
+            { code: "8176", name: "خالد عمر" },
+            { code: "4623", name: "علي بن جميل" },
+            { code: "1985", name: "محمد عليان" },
+            { code: "7309", name: "محمد رامي العتيبي" }
+        ];
+
+        const ADMIN_PHONE = "0555997334";
+
+        const STORAGE_BOOKINGS = "numbers_app_bookings_v3";
+        const STORAGE_ADMIN = "numbers_app_admin_session_v3";
+        const STORAGE_CURRENT_STUDENT = "numbers_app_current_student_v3";
+        const STORAGE_THEME = "numbers_app_theme_v1";
+
+        let bookings = [];
+        let isAdminLoggedIn = false;
+        let loggedInStudent = null;
+
+        window.onload = function() {
+            initTheme();
+            loadSavedState();
+            renderHeader();
+            renderMainPanel();
+            renderBookings();
+            updateAdminStats();
+        };
+
+        function initTheme() {
+            const savedTheme = localStorage.getItem(STORAGE_THEME);
+            if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                updateThemeIcon(true);
+            } else {
+                document.documentElement.classList.remove('dark');
+                updateThemeIcon(false);
+            }
+        }
+
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem(STORAGE_THEME, isDark ? 'dark' : 'light');
+            updateThemeIcon(isDark);
+        }
+
+        function updateThemeIcon(isDark) {
+            const icon = document.getElementById('themeIcon');
+            if (icon) {
+                icon.className = isDark ? 'fa-solid fa-sun text-amber-400' : 'fa-solid fa-moon text-slate-600';
+            }
+        }
+
+        function loadSavedState() {
+            const savedBookings = localStorage.getItem(STORAGE_BOOKINGS);
+            if (savedBookings) {
+                try { bookings = JSON.parse(savedBookings); } catch(e) { bookings = []; }
+            } else {
+                bookings = [];
+                saveBookings();
+            }
+
+            const savedAdmin = localStorage.getItem(STORAGE_ADMIN);
+            isAdminLoggedIn = savedAdmin === "true";
+
+            const savedStudent = localStorage.getItem(STORAGE_CURRENT_STUDENT);
+            if (savedStudent) {
+                try { loggedInStudent = JSON.parse(savedStudent); } catch(e) { loggedInStudent = null; }
+            }
+        }
+
+        function saveBookings() {
+            localStorage.setItem(STORAGE_BOOKINGS, JSON.stringify(bookings));
+        }
+
+        function saveAdminSession() {
+            localStorage.setItem(STORAGE_ADMIN, isAdminLoggedIn ? "true" : "false");
+        }
+
+        function saveStudentSession() {
+            if (loggedInStudent) {
+                localStorage.setItem(STORAGE_CURRENT_STUDENT, JSON.stringify(loggedInStudent));
+            } else {
+                localStorage.removeItem(STORAGE_CURRENT_STUDENT);
+            }
+        }
+
+        function updateAdminStats() {
+            const bookedEl = document.getElementById('adminStatBooked');
+            const remEl = document.getElementById('adminStatRemaining');
+            const bookedBar = document.getElementById('adminStatBookedBar');
+            const remBar = document.getElementById('adminStatRemainingBar');
+
+            const total = STUDENTS_DATABASE.length;
+            const bookedCount = bookings.length;
+            const remainingCount = Math.max(0, total - bookedCount);
+
+            if (bookedEl && remEl) {
+                bookedEl.innerText = bookedCount;
+                remEl.innerText = remainingCount;
+            }
+
+            if (bookedBar && remBar) {
+                const bookedPct = Math.round((bookedCount / total) * 100);
+                const remPct = Math.round((remainingCount / total) * 100);
+                bookedBar.style.width = `${bookedPct}%`;
+                remBar.style.width = `${remPct}%`;
+            }
+        }
+
+        function copyAllBookingsSummary() {
+            if (bookings.length === 0) {
+                showToast("لا توجد حجوزات مسجلة لنخسها حالياً!", "error");
+                return;
+            }
+
+            let text = "📋 **قائمة أرقام الطلاب المحجوزة:**\n\n";
+            bookings.forEach((b, idx) => {
+                text += `${idx + 1}. الطالب: ${b.studentName} | الرقم: #${b.number} (${b.bookedAt})\n`;
+            });
+
+            const dummy = document.createElement("textarea");
+            document.body.appendChild(dummy);
+            dummy.value = text;
+            dummy.select();
+            document.execCommand("copy");
+            document.body.removeChild(dummy);
+
+            showToast("تم نسخ قائمة الحجوزات إلى الحافظة بنجاح!", "success");
+        }
+
+        function confirmResetAllBookings() {
+            if (bookings.length === 0) {
+                showToast("قائمة الحجوزات فارغة بالفعل!", "info");
+                return;
+            }
+
+            if (window.confirm("هل أنت أصلًا متأكد من تفريغ وحذف جميع الحجوزات المسجلة الآن؟")) {
+                bookings = [];
+                saveBookings();
+                renderMainPanel();
+                renderBookings();
+                updateAdminStats();
+                showToast("تم تفريغ وإعادة فتح جميع الأرقام بنجاح!", "success");
+            }
+        }
+
+        function renderHeader() {
+            const container = document.getElementById('authHeaderArea');
+            if (isAdminLoggedIn) {
+                container.innerHTML = `
+                    <div class="flex items-center gap-2.5">
+                        <span class="text-xs bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-extrabold px-3.5 py-2 rounded-2xl border border-emerald-500/30 flex items-center gap-1.5">
+                            <i class="fa-solid fa-crown text-emerald-500"></i> المشرف
+                        </span>
+                        <button onclick="handleAdminLogout()" class="text-xs text-rose-600 hover:text-rose-800 dark:text-rose-400 dark:hover:text-rose-300 bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-100 font-bold px-3.5 py-2 rounded-2xl border border-rose-200 dark:border-rose-900 transition">
+                            خروج المشرف
+                        </button>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <button onclick="openLoginModal()" class="text-xs text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold px-4 py-2.5 rounded-2xl transition flex items-center gap-2 border border-slate-200 dark:border-slate-700">
+                        <i class="fa-solid fa-user-gear text-slate-500 dark:text-slate-400"></i>
+                        دخول المشرف
+                    </button>
+                `;
+            }
+
+            const banner = document.getElementById('adminPanelBanner');
+            if (banner) {
+                if (isAdminLoggedIn) banner.classList.remove('hidden');
+                else banner.classList.add('hidden');
+            }
+        }
+
+        function renderMainPanel() {
+            const container = document.getElementById('mainActionCard');
+
+            if (!loggedInStudent) {
+                container.innerHTML = `
+                    <div class="text-center max-w-md mx-auto space-y-5 py-2">
+                        <div class="w-16 h-16 bg-blue-50 dark:bg-slate-800 text-blue-600 dark:text-blue-400 rounded-3xl flex items-center justify-center mx-auto text-2xl font-black shadow-inner border border-blue-100 dark:border-slate-700">
+                            <i class="fa-solid fa-id-card"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-black text-slate-900 dark:text-white">تسجيل دخول الطالب</h2>
+                            <p class="text-xs font-semibold text-slate-400 mt-1">أدخل الكود الخاص بك والمكون من 4 أرقام لبدء حجز رقمك المميز</p>
+                        </div>
+
+                        <form onsubmit="handleStudentLogin(event)" class="space-y-4">
+                            <div>
+                                <input type="text" id="studentCodeInput" required placeholder="أدخل الكود (4 أرقام)" maxlength="4"
+                                    class="w-full px-4 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-slate-800 focus:outline-none transition font-mono tracking-[0.3em] font-black text-slate-900 dark:text-white text-center text-xl shadow-inner">
+                            </div>
+                            <div id="studentLoginError" class="hidden text-xs text-rose-600 dark:text-rose-400 font-black">
+                                الكود التسلسلي غير صحيح، يرجى التأكد وإعادة المحاولة!
+                            </div>
+                            <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black py-4 px-4 rounded-2xl shadow-lg shadow-blue-500/25 transition duration-200 flex items-center justify-center gap-2 text-sm">
+                                <i class="fa-solid fa-right-to-bracket"></i>
+                                تسجيل الدخول لحجز الرقم
+                            </button>
+                        </form>
+                    </div>
+                `;
+            } else {
+                const existingBooking = bookings.find(b => b.studentCode === loggedInStudent.code);
+
+                container.innerHTML = `
+                    <div class="flex items-center justify-between pb-5 mb-5 border-b border-slate-100 dark:border-slate-800">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-12 h-12 bg-gradient-to-tr from-emerald-500 to-teal-600 text-white rounded-2xl flex items-center justify-center font-black text-xl shadow-md shadow-emerald-500/20">
+                                <i class="fa-solid fa-user-graduate"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-base font-black text-slate-900 dark:text-white">مرحباً الطالب: ${loggedInStudent.name}</h2>
+                                <p class="text-xs font-semibold text-slate-400">حساب طالب موثق بنجاح</p>
+                            </div>
+                        </div>
+                        <button onclick="handleStudentLogout()" class="text-xs text-slate-600 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/50 px-4 py-2 rounded-xl transition font-bold flex items-center gap-1.5 border border-slate-200 dark:border-slate-700">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                            تسجيل الخروج
+                        </button>
+                    </div>
+
+                    ${existingBooking ? `
+                        <div class="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/20 border border-emerald-200/80 dark:border-emerald-800/60 rounded-2xl p-6 text-center space-y-3 shadow-inner">
+                            <div class="w-12 h-12 bg-emerald-500 text-white rounded-full flex items-center justify-center mx-auto text-xl shadow-lg shadow-emerald-500/30">
+                                <i class="fa-solid fa-check"></i>
+                            </div>
+                            <h3 class="font-black text-emerald-900 dark:text-emerald-300 text-base">تم حجز الرقم المميز بنجاح!</h3>
+                            <p class="text-xs font-semibold text-emerald-700 dark:text-emerald-400">رقمك المحجوز في النظام هو: <span class="font-black text-2xl text-emerald-800 dark:text-emerald-200 bg-white dark:bg-slate-900 px-4 py-1 rounded-xl border border-emerald-300 dark:border-emerald-700 shadow-sm inline-block mx-1">#${existingBooking.number}</span></p>
+                        </div>
+                    ` : `
+                        <form onsubmit="handleMakeBooking(event)" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1.5">أدخل الرقم المميز الذي ترغب بحجزه</label>
+                                <input type="number" id="desiredNumberInput" required min="1" max="9999" placeholder="مثال: 7 أو 99"
+                                    class="w-full px-4 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-slate-800 focus:outline-none transition text-slate-900 dark:text-white text-center text-xl font-black shadow-inner">
+                            </div>
+
+                            <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black py-4 px-4 rounded-2xl shadow-lg shadow-blue-500/25 transition duration-200 flex items-center justify-center gap-2 text-sm">
+                                <i class="fa-solid fa-bookmark"></i>
+                                تأكيد وتوثيق الحجز
+                            </button>
+                        </form>
+                    `}
+                `;
+            }
+        }
+
+        function handleStudentLogin(event) {
+            event.preventDefault();
+            const input = document.getElementById('studentCodeInput').value.trim();
+            const student = STUDENTS_DATABASE.find(s => s.code === input);
+
+            if (student) {
+                loggedInStudent = student;
+                saveStudentSession();
+                renderMainPanel();
+                showToast(`مرحباً بك يا ${student.name}!`, "success");
+            } else {
+                document.getElementById('studentLoginError').classList.remove('hidden');
+            }
+        }
+
+        function handleStudentLogout() {
+            loggedInStudent = null;
+            saveStudentSession();
+            renderMainPanel();
+            showToast("تم تسجيل خروج الطالب.", "info");
+        }
+
+        function handleMakeBooking(event) {
+            event.preventDefault();
+            if (!loggedInStudent) return;
+
+            const desiredNumber = document.getElementById('desiredNumberInput').value.trim();
+
+            if (!desiredNumber) {
+                showToast("يرجى كتابة الرقم المميز!", "error");
+                return;
+            }
+
+            const existingNumber = bookings.find(b => b.number === desiredNumber);
+            if (existingNumber) {
+                showToast(`الرقم (${desiredNumber}) محجوز مسبقاً للطالب: ${existingNumber.studentName}`, "error");
+                return;
+            }
+
+            bookings.unshift({
+                number: desiredNumber,
+                studentName: loggedInStudent.name,
+                studentCode: loggedInStudent.code,
+                bookedAt: new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })
+            });
+
+            saveBookings();
+            renderMainPanel();
+            renderBookings();
+            updateAdminStats();
+
+            showToast(`تم حجز الرقم المميز (#${desiredNumber}) بنجاح!`, "success");
+        }
+
+        function renderBookings() {
+            const container = document.getElementById('bookingsListContainer');
+            const searchVal = document.getElementById('searchInput') ? document.getElementById('searchInput').value.trim().toLowerCase() : "";
+            const countDisplay = document.getElementById('totalBookingsCount');
+
+            if (countDisplay) countDisplay.innerText = bookings.length;
+
+            const filtered = bookings.filter(b => 
+                b.number.includes(searchVal) || 
+                b.studentName.toLowerCase().includes(searchVal)
+            );
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="py-14 text-center text-slate-400 dark:text-slate-500 space-y-3">
+                        <div class="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto text-2xl text-slate-300 dark:text-slate-600">
+                            <i class="fa-solid fa-inbox"></i>
+                        </div>
+                        <p class="text-xs font-bold">${searchVal ? 'لا يوجد نتائج تطابق بحثك' : 'لا توجد أي أرقام محجوزة حتى الآن'}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    ${filtered.map(b => `
+                        <div class="${isAdminLoggedIn 
+                            ? 'bg-slate-900 border-emerald-500/40 text-white shadow-lg shadow-emerald-500/5' 
+                            : 'bg-slate-50 dark:bg-slate-800/50 border-slate-200/80 dark:border-slate-800 text-slate-800 dark:text-slate-100'} border rounded-2xl p-4 flex items-center justify-between transition hover:shadow-md">
+                            <div class="flex items-center gap-3.5">
+                                <div class="px-4 py-2.5 ${isAdminLoggedIn ? 'bg-gradient-to-tr from-emerald-400 to-teal-500 text-slate-950 font-black' : 'bg-blue-600 text-white'} rounded-xl flex items-center justify-center font-black text-2xl md:text-3xl shadow-md tracking-wider">
+                                    #${b.number}
+                                </div>
+                                <div>
+                                    <h4 class="font-black text-base md:text-lg ${isAdminLoggedIn ? 'text-slate-100' : 'text-slate-900 dark:text-white'}">${b.studentName}</h4>
+                                    <span class="text-xs font-semibold text-slate-400 dark:text-slate-400 flex items-center gap-1 mt-0.5">
+                                        <i class="fa-regular fa-clock text-xs"></i> ${b.bookedAt}
+                                    </span>
+                                </div>
+                            </div>
+                            ${isAdminLoggedIn ? `
+                                <button onclick="deleteBooking('${b.number}')" class="text-xs bg-rose-500/20 hover:bg-rose-500/40 text-rose-300 font-bold px-3 py-2 rounded-xl border border-rose-500/30 transition flex items-center gap-1.5 shadow-sm">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                    تفريغ
+                                </button>
+                            ` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function deleteBooking(number) {
+            bookings = bookings.filter(b => b.number !== number);
+            saveBookings();
+            renderMainPanel();
+            renderBookings();
+            updateAdminStats();
+            showToast(`تم إغلاق وتفريغ حجز الرقم (#${number}) بنجاح.`, "info");
+        }
+
+        function openLoginModal() {
+            document.getElementById('loginModal').classList.remove('hidden');
+            document.getElementById('loginInputCode').value = "";
+            document.getElementById('loginErrorMsg').classList.add('hidden');
+        }
+
+        function closeLoginModal() {
+            document.getElementById('loginModal').classList.add('hidden');
+        }
+
+        function handleAdminLogin(event) {
+            event.preventDefault();
+            const inputCode = document.getElementById('loginInputCode').value.trim();
+
+            if (inputCode === ADMIN_PHONE) {
+                isAdminLoggedIn = true;
+                saveAdminSession();
+                closeLoginModal();
+                renderHeader();
+                renderBookings();
+                updateAdminStats();
+                showToast("تم تسجيل دخول المشرف بنجاح!", "success");
+            } else {
+                document.getElementById('loginErrorMsg').classList.remove('hidden');
+            }
+        }
+
+        function handleAdminLogout() {
+            isAdminLoggedIn = false;
+            saveAdminSession();
+            renderHeader();
+            renderBookings();
+            updateAdminStats();
+            showToast("تم تسجيل خروج المشرف.", "info");
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+
+            let iconClass = 'fa-info-circle text-blue-400';
+            let bgClass = 'bg-slate-900 text-white border-slate-700';
+
+            if (type === 'success') {
+                iconClass = 'fa-circle-check text-emerald-400';
+            } else if (type === 'error') {
+                iconClass = 'fa-circle-exclamation text-rose-400';
+            }
+
+            toast.className = `flex items-center gap-3 px-4 py-3 rounded-2xl border text-xs font-bold shadow-xl transition-all duration-300 ${bgClass}`;
+            toast.innerHTML = `<i class="fa-solid ${iconClass} text-base"></i> <span>${message}</span>`;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
